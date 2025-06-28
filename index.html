@@ -1,0 +1,29 @@
+<!DOCTYPE html>  <!--告诉浏览器这是一个HTML5页面-->
+<html lang="en"> 
+
+<head>     <!--放元数据，如标题、CSS 引用等-->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>陸澤天のウェブサイト</title>
+  <link rel="stylesheet" href="style.css" /> <!--把 CSS 样式文件引入网页-->
+</head>
+
+<body>  <!--网页的内容，用户能看到的都写这里-->
+  <h1>hello,冒険者！</h1>
+  <p>これが私のfirstウェブページだ</p>
+
+  <!-- 图片轮播区域 -->
+  <div class="carousel">
+    <img src="images/ComfyUI_temp_ajgvx_00002_.png" class="carousel-img" style="display:block;">
+    <img src="images/ComfyUI_temp_hngvp_00001_.png" class="carousel-img" style="display:none;">
+    <img src="images/ComfyUI_temp_mqfdp_00002_.png" class="carousel-img" style="display:none;">
+  </div>
+
+  <button onclick="sayHello()">点我</button>  <!--用户点击按钮,执行script.js函数-->
+  <script src="script.js"></script> <!--加载JS 文件，实现动态交互功能-->
+</body>
+
+</html>
+
+
+<!-- macOS：Cmd + /　注釈を書ける -->
