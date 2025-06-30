@@ -69,21 +69,52 @@ chatInput.addEventListener('keydown', function(e){
 });
 // 机器人回复
 function sendToBot(text) {
-  appendMessage('机器人思考中...', 'bot');
+  // 先渲染一个空的bot消息
+  const msg = document.createElement('div');
+  msg.className = 'chat-message bot';
+  const avatar = document.createElement('img');
+  avatar.className = 'avatar bot';
+  avatar.src = 'https://api.dicebear.com/7.x/shapes/svg?seed=assistant&backgroundColor=414345,00ffc3&radius=50';
+  const msgContent = document.createElement('div');
+  msgContent.className = 'msg-content';
+  const name = document.createElement('span');
+  name.className = 'name';
+  name.textContent = 'assistant';
+  const textNode = document.createElement('span');
+  textNode.textContent = '';
+  msgContent.appendChild(name);
+  msgContent.appendChild(textNode);
+  msg.appendChild(avatar);
+  msg.appendChild(msgContent);
+  chatHistory.appendChild(msg);
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+
   fetch('http://localhost:5001/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: text })
   })
-  .then(res => res.json())
-  .then(data => {
-    chatHistory.removeChild(chatHistory.lastChild);
-    if(data.reply) appendMessage(data.reply, 'bot');
-    else appendMessage('出错了: ' + (data.error || '未知错误'), 'bot');
+  .then(res => {
+    if (!res.body) throw new Error('No response body');
+    const reader = res.body.getReader();
+    let decoder = new TextDecoder('utf-8');
+    let botText = '';
+    function readChunk() {
+      return reader.read().then(({ done, value }) => {
+        if (done) {
+          return;
+        }
+        const chunk = decoder.decode(value, { stream: true });
+        botText += chunk;
+        textNode.textContent = botText;
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        return readChunk();
+      });
+    }
+    return readChunk();
   })
   .catch(() => {
-    chatHistory.removeChild(chatHistory.lastChild);
-    appendMessage('网络错误或服务器未启动', 'bot');
+    textNode.textContent = '网络错误或服务器未启动';
   });
 }
 

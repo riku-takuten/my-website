@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -16,21 +16,29 @@ client = OpenAI(
     base_url="https://api.deepseek.com"
 )
 
+def stream_chat_response(user_message):
+    def generate():
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[{"role": "user", "content": user_message}],
+            stream=True
+        )
+        for chunk in response:
+            delta = getattr(chunk.choices[0].delta, 'content', None)
+            if delta:
+                yield delta
+    return Response(generate(), mimetype='text/plain')
+
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.get_json()
     user_message = data.get('message', '')
     if not user_message:
-        return jsonify({'error': 'No message provided'}), 400
+        return {'error': 'No message provided'}, 400
     try:
-        response = client.chat.completions.create(
-            model="deepseek-chat",
-            messages=[{"role": "user", "content": user_message}]
-        )
-        reply = response.choices[0].message.content
-        return jsonify({'reply': reply})
+        return stream_chat_response(user_message)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return {'error': str(e)}, 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
